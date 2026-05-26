@@ -9,22 +9,11 @@ import {
   generateSystemConstraintText
 } from '../lib/safety-engine';
 
-declare var process: any;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
 
-const supabaseUrl = 
-  (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_SUPABASE_URL) || 
-  (typeof process !== 'undefined' && process.env.VITE_SUPABASE_URL) || 
-  'https://placeholder.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
 
-const supabaseAnonKey = 
-  (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_SUPABASE_ANON_KEY) || 
-  (typeof process !== 'undefined' && process.env.VITE_SUPABASE_ANON_KEY) || 
-  'placeholder-key';
-
-const llmApiKey = 
-  (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_LLM_API_KEY) || 
-  (typeof process !== 'undefined' && process.env.VITE_LLM_API_KEY) || 
-  '';
+const llmApiKey = import.meta.env.VITE_LLM_API_KEY || '';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -181,8 +170,6 @@ export const DrugSafetyProvider: React.FC<DrugSafetyProviderProps> = ({ children
     constraints: string, 
     mode: 'GENERIC' | 'SHIELDED'
   ): Promise<string> => {
-    const apiKey = typeof import.meta.env !== 'undefined' ? import.meta.env.VITE_LLM_API_KEY : llmApiKey;
-
     const systemPrompt = mode === 'SHIELDED' 
       ? `${constraints}\n\nYou are a clinical safety intercept layer. If a safety conflict is provided above, you MUST explicitly state that the prescription is BLOCKED and outline the safety reason clearly.`
       : "You are a helpful medical assistant chatbot assistant thread. Answer the question directly.";
@@ -192,7 +179,7 @@ export const DrugSafetyProvider: React.FC<DrugSafetyProviderProps> = ({ children
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
+          "Authorization": `Bearer ${llmApiKey}`
         },
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
