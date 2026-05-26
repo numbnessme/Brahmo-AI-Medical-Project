@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/Brahmo-AI-Medical-Project/',
+  base: './',
   server: {
     proxy: {
       '/api/openai': {
