@@ -1,67 +1,50 @@
-// src/lib/types.ts
+export interface Patient {
+  id: number;
+  name: string;
+  age: number;
+  gender: string;
+  medications: string[];
+  allergies: Array<{ allergen: string; manifestation: string }>;
+  creatinine: number;
+  weight: number;
+  height: number;
+  systolicBP: number;
+  diastolicBP: number;
+}
 
-/**
- * BRAHMO Healthcare Architecture - Clinical Safety Engine Core Types
- */
+export interface Alert {
+  title: string;
+  message: string;
+  severity: 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW';
+  overrideStrategy?: string;
+}
 
 export interface PatientLabs {
   creatinine: number;
   age: number;
-  gender: 'male' | 'female';
-  hba1c?: number;
-  kPlus?: number;
-  inr?: number;
+  gender: string;
 }
 
 export interface PatientConditions {
-  hasCHF: boolean;
-  hasHTN: boolean;
-  hasDM: boolean;
-  hasStrokeOrTIA: boolean;
-  hasVascularDisease: boolean;
-}
-
-export interface Patient {
-  id: string;
-  name: string;
-  age: number;
-  gender: 'male' | 'female';
-  medications: string[];
-  allergies: Array<{
-    allergen: string;
-    manifestation: string;
-    reactionType: string; // e.g., 'penicillin', 'sulfonamide', 'aceinhibitor'
-  }>;
-  labs: {
-    creatinine: number;
-    hba1c?: number;
-    kPlus?: number;
-    inr?: number;
-  };
-  conditions: PatientConditions;
+  hasCHF?: boolean;
+  hasHTN?: boolean;
+  hasDM?: boolean;
+  hasStrokeOrTIA?: boolean;
+  hasVascularDisease?: boolean;
 }
 
 export interface DrugDosingRule {
   threshold: number;
-  action: 'contraindicated' | 'avoid' | 'adjust' | 'reduce' | 'none' | 'monitor';
+  action: string;
   message: string;
 }
 
-export interface DatabaseDrug {
-  id: string;
-  generic_name: string;
-  generic_name_normalized: string;
-  drug_class: string;
-  renal_dosing: DrugDosingRule | null;
-}
-
-export interface DatabaseDDI {
-  severity: 'CONTRAINDICATED' | 'SEVERE' | 'MODERATE' | 'MINOR';
-  mechanism: string;
-  clinical_effect: string;
-  management: string;
-  drug_a: { generic_name: string };
-  drug_b: { generic_name: string };
+export interface SafetyAlert {
+  type: string;
+  severity: 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW';
+  title: string;
+  message: string;
+  overrideStrategy?: string;
 }
 
 export interface CrossReactivityRule {
@@ -69,12 +52,4 @@ export interface CrossReactivityRule {
   drug_class_b: string;
   cross_reactivity_pct: number | string;
   clinical_guidance: string;
-}
-
-export interface SafetyAlert {
-  type: 'INTERACTION' | 'ALLERGY' | 'RENAL' | 'SCORE';
-  severity: 'CRITICAL' | 'HIGH' | 'MODERATE' | 'INFO';
-  title: string;
-  message: string;
-  overrideStrategy?: string;
 }
