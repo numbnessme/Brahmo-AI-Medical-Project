@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/lib/safety-engine.ts
 import { PatientLabs, PatientConditions, DrugDosingRule, SafetyAlert, CrossReactivityRule } from './types';
 
@@ -222,7 +221,7 @@ export function generateSystemConstraintText(
   text += `[INSTRUCTION]: Under no circumstances will you declare the blocked medications as acceptable choices. If a hard block is active, you must gracefully refuse the order and offer standard alternative combinations listed under safe clinical options.\n`;
   
   return text;
-=======
+}
 // src/lib/safety-engine.ts
 import { PatientLabs, PatientConditions, DrugDosingRule, SafetyAlert, CrossReactivityRule } from './types';
 
@@ -446,5 +445,5 @@ export function generateSystemConstraintText(
   text += `[INSTRUCTION]: Under no circumstances will you declare the blocked medications as acceptable choices. If a hard block is active, you must gracefully refuse the order and offer standard alternative combinations listed under safe clinical options.\n`;
   
   return text;
->>>>>>> 944af93d08b53034c33eae1d1ba4435a6275b980
+
 }

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Patient, DatabaseDrug, SafetyAlert, CrossReactivityRule } from '../lib/types';
@@ -30,7 +29,7 @@ const llmApiKey =
   '';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-=======
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface Patient {
@@ -53,12 +52,12 @@ interface Alert {
   severity: 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW';
   strategy?: string;
 }
->>>>>>> 944af93d08b53034c33eae1d1ba4435a6275b980
+
 
 interface DrugSafetyContextType {
   patients: Patient[];
   selectedPatient: Patient | null;
-<<<<<<< HEAD
+
   setSelectedPatient: (patient: Patient) => void;
   activeAlerts: SafetyAlert[];
   isProcessingCheck: boolean;
@@ -66,7 +65,7 @@ interface DrugSafetyContextType {
   callLiveAI: (drug: string, question: string, constraints: string, mode: 'GENERIC' | 'SHIELDED') => Promise<string>;
   currentEGFR: number;
   currentChadsVasc: number;
-=======
+
   setSelectedPatient: (patient: Patient | null) => void;
   activeAlerts: Alert[];
   isProcessingCheck: boolean;
@@ -74,12 +73,12 @@ interface DrugSafetyContextType {
   currentChadsVasc: number;
   runSafetyPipeline: (drug: string) => Promise<{ systemConstraintText: string }>;
   callLiveAI: (drug: string, question: string, constraints: string, mode: string) => Promise<string>;
->>>>>>> 944af93d08b53034c33eae1d1ba4435a6275b980
+
 }
 
 const DrugSafetyContext = createContext<DrugSafetyContextType | undefined>(undefined);
 
-<<<<<<< HEAD
+
 export const DrugSafetyProvider: React.FC<{ children: React.ReactNode, mockPatients: Patient[] }> = ({ children, mockPatients }) => {
   const [patients] = useState<Patient[]>(mockPatients || []);
   const [selectedPatient, setSelectedPatientState] = useState<Patient | null>(null);
@@ -280,7 +279,7 @@ export const useDrugSafety = () => {
   if (!context) throw new Error("useDrugSafety hook executed outside an active DrugSafetyProvider root node.");
   return context;
 };
-=======
+
 export function useDrugSafety() {
   const context = useContext(DrugSafetyContext);
   if (!context) {
@@ -370,4 +369,4 @@ export function DrugSafetyProvider({ children, mockPatients }: DrugSafetyProvide
     </DrugSafetyContext.Provider>
   );
 }
->>>>>>> 944af93d08b53034c33eae1d1ba4435a6275b980
+

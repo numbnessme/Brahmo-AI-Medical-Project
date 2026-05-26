@@ -266,7 +266,7 @@ function DashboardContent() {
                 )}
               </div>
 
-              {/* LIVE TWIN METADATA VIEWPORTS (Renders dynamically) */}
+
               {simulationResult && (
                 <>
                   {/* ENVELOPE STRUCTURAL PRE-INJECTED TEXT INSIGHT */}
