@@ -66,10 +66,10 @@ export const DrugSafetyProvider: React.FC<DrugSafetyProviderProps> = ({ children
       const egfr = calculateEGFR({
         creatinine: selectedPatient.labs.creatinine,
         age: selectedPatient.age,
-        gender: selectedPatient.gender
+        gender: selectedPatient.gender as "male" | "female"
       });
       
-      const chads = calculateChadsVasc(selectedPatient.age, selectedPatient.gender, selectedPatient.conditions);
+      const chads = calculateChadsVasc(selectedPatient.age, selectedPatient.gender as "male" | "female", selectedPatient.conditions);
       
       setCurrentEGFR(egfr);
       setCurrentChadsVasc(chads.score);
@@ -117,7 +117,7 @@ export const DrugSafetyProvider: React.FC<DrugSafetyProviderProps> = ({ children
 
       const allergyAlerts = checkAllergyConflicts(
         { genericName: targetDrug.generic_name, drugClass: targetDrug.drug_class },
-        selectedPatient.allergies || [],
+        (selectedPatient.allergies || []).map(a => ({ ...a, reactionType: a.reactionType || 'UNKNOWN' })),
         crossReactivityRules
       );
       compiledAlerts.push(...allergyAlerts);

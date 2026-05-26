@@ -68,8 +68,37 @@ export const ResponseComparison: React.FC = () => {
             />
           </div>
         </div>
-        <div style={{ padding: '16px', fontSize: '13.5px', color: '#0f172a', lineHeight: '1.6', whiteSpace: 'pre-wrap', backgroundColor: '#fafcff', fontWeight: 500 }}>
-          {enhancedOutput}
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg shadow-sm transition-colors disabled:opacity-50"
+          >
+            {isLoading ? 'Processing...' : 'Run Consultation Check'}
+          </button>
+        </div>
+      </form>
+
+      {/* Outputs side-by-side or stacked */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+          <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center gap-2">
+            <span className="text-lg">🤖</span>
+            <h3 className="font-bold text-slate-700 text-sm">Standard AI (No Shields)</h3>
+          </div>
+          <div style={{ padding: '16px', fontSize: '13.5px', color: '#334155', lineHeight: '1.6', whiteSpace: 'pre-wrap', backgroundColor: '#fff', flexGrow: 1 }}>
+            {genericOutput}
+          </div>
+        </div>
+
+        <div className="bg-white border border-blue-200 rounded-xl shadow-sm overflow-hidden flex flex-col ring-1 ring-blue-500/10">
+          <div className="bg-blue-50 border-b border-blue-200 px-4 py-3 flex items-center gap-2">
+            <span className="text-lg">🛡️</span>
+            <h3 className="font-bold text-blue-800 text-sm">Brahmo AI Engine (Deterministic + LLM)</h3>
+          </div>
+          <div style={{ padding: '16px', fontSize: '13.5px', color: '#0f172a', lineHeight: '1.6', whiteSpace: 'pre-wrap', backgroundColor: '#fafcff', fontWeight: 500, flexGrow: 1 }}>
+            {enhancedOutput}
+          </div>
         </div>
       </div>
     </div>

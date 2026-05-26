@@ -31,7 +31,7 @@ export async function simulateSurpriseScenario(
   // 3. Evaluate unexpected allergy shifts
   const allergyChecks = checkAllergyConflicts(
     { genericName: proposedNewDrug.generic_name, drugClass: proposedNewDrug.drug_class },
-    mockPatient.allergies,
+    (mockPatient.allergies || []).map(a => ({ ...a, reactionType: a.reactionType || 'UNKNOWN' })),
     crossReactivityRules
   );
   alerts.push(...allergyChecks);

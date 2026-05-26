@@ -21,6 +21,23 @@ export const SafetyAlerts: React.FC = () => {
           <h5 className="text-sm font-bold text-emerald-800">Deterministic Guardrails Clear</h5>
           <p className="text-xs text-emerald-600">No active blocks or dosing adjustments detected for this drug entry.</p>
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {activeAlerts.map((alert, idx) => (
+        <div key={idx} className={`p-4 border rounded-xl flex items-start gap-3 ${alert.severity === 'CRITICAL' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
+          <span className="text-xl">{alert.severity === 'CRITICAL' ? '⛔' : '⚠️'}</span>
+          <div>
+            <h5 className={`text-sm font-bold ${alert.severity === 'CRITICAL' ? 'text-red-800' : 'text-amber-800'}`}>{alert.title}</h5>
+            <p className={`text-xs mt-1 ${alert.severity === 'CRITICAL' ? 'text-red-600' : 'text-amber-700'}`}>{alert.message}</p>
+            {alert.overrideStrategy && (
+              <p className={`text-xs mt-2 font-semibold ${alert.severity === 'CRITICAL' ? 'text-red-700' : 'text-amber-700'}`}>Strategy: {alert.overrideStrategy}</p>
+            )}
+          </div>
+        </div>
       ))}
     </div>
   );
