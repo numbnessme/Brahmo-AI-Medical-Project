@@ -1,7 +1,9 @@
-<<<<<<< HEAD
 import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  plugins: [react()],
+  base: '/Brahmo-AI-Medical-Project/',
   server: {
     proxy: {
       '/api/openai': {
@@ -13,19 +15,3 @@ export default defineConfig({
     }
   }
 });
-=======
-import { defineConfig } from 'vite';
-
-export default defineConfig({
-  server: {
-    proxy: {
-      '/api/openai': {
-        target: 'https://api.openai.com',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api\/openai/, '')
-      }
-    }
-  }
-});
->>>>>>> 944af93d08b53034c33eae1d1ba4435a6275b980
