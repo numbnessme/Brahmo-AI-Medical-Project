@@ -1,5 +1,5 @@
-import { calculateEGFR, checkAllergyConflicts, checkRenalDosing, SafetyAlert, CrossReactivityRule } from './safety-engine';
-import { Patient, DatabaseDDI, DatabaseDrug } from './types';
+import { calculateEGFR, checkAllergyConflicts, checkRenalDosing } from './safety-engine';
+import { Patient, DatabaseDDI, DatabaseDrug, SafetyAlert, CrossReactivityRule } from './types';
 
 /**
  * UTILITY HARNESS TO PRE-TEST SURPRISE SCENARIOS LIVE

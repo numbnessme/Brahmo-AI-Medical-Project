@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Patient, DatabaseDrug, SafetyAlert, CrossReactivityRule } from '../lib/types';
 import { 
@@ -11,8 +11,6 @@ import {
 
 declare var process: any;
 
-// --- SAFE MULTI-ENVIRONMENT TOKEN COUPLING LAYER ---
-// Intercepts environment mappings from Vite browser contexts OR standard Node process contexts safely
 const supabaseUrl = 
   (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_SUPABASE_URL) || 
   (typeof process !== 'undefined' && process.env.VITE_SUPABASE_URL) || 
@@ -30,56 +28,26 @@ const llmApiKey =
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-
-interface Patient {
-  id: number;
-  name: string;
-  age: number;
-  gender: string;
-  medications: string[];
-  allergies: Array<{ allergen: string; manifestation: string }>;
-  creatinine: number;
-  weight: number;
-  height: number;
-  systolicBP: number;
-  diastolicBP: number;
-}
-
-interface Alert {
-  title: string;
-  message: string;
-  severity: 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW';
-  strategy?: string;
-}
-
-
 interface DrugSafetyContextType {
   patients: Patient[];
   selectedPatient: Patient | null;
-
-  setSelectedPatient: (patient: Patient) => void;
+  setSelectedPatient: (patient: Patient | null) => void;
   activeAlerts: SafetyAlert[];
   isProcessingCheck: boolean;
   runSafetyPipeline: (newDrugName: string) => Promise<{ systemConstraintText: string; alerts: SafetyAlert[] }>;
   callLiveAI: (drug: string, question: string, constraints: string, mode: 'GENERIC' | 'SHIELDED') => Promise<string>;
   currentEGFR: number;
   currentChadsVasc: number;
-
-  setSelectedPatient: (patient: Patient | null) => void;
-  activeAlerts: Alert[];
-  isProcessingCheck: boolean;
-  currentEGFR: number;
-  currentChadsVasc: number;
-  runSafetyPipeline: (drug: string) => Promise<{ systemConstraintText: string }>;
-  callLiveAI: (drug: string, question: string, constraints: string, mode: string) => Promise<string>;
-
 }
 
 const DrugSafetyContext = createContext<DrugSafetyContextType | undefined>(undefined);
 
+interface DrugSafetyProviderProps {
+  children: ReactNode;
+  mockPatients: Patient[];
+}
 
-export const DrugSafetyProvider: React.FC<{ children: React.ReactNode, mockPatients: Patient[] }> = ({ children, mockPatients }) => {
+export const DrugSafetyProvider: React.FC<DrugSafetyProviderProps> = ({ children, mockPatients }) => {
   const [patients] = useState<Patient[]>(mockPatients || []);
   const [selectedPatient, setSelectedPatientState] = useState<Patient | null>(null);
   const [activeAlerts, setActiveAlerts] = useState<SafetyAlert[]>([]);
@@ -93,33 +61,26 @@ export const DrugSafetyProvider: React.FC<{ children: React.ReactNode, mockPatie
     }
   }, [patients, selectedPatient]);
 
-//  REPLACE IT WITH THIS VERSION:
-useEffect(() => {
-  if (selectedPatient) {
-    // Dynamically re-calculates kidney functions via CKD-EPI 2021 equations
-    const egfr = calculateEGFR({
-      creatinine: selectedPatient.labs.creatinine,
-      age: selectedPatient.age,
-      gender: selectedPatient.gender
-    });
-    
-    // Dynamically re-calculates cardiovascular stroke risk scores
-    const chads = calculateChadsVasc(selectedPatient.age, selectedPatient.gender, selectedPatient.conditions);
-    
-    // Pushes the updated values directly into your dashboard view states
-    setCurrentEGFR(egfr);
-    setCurrentChadsVasc(chads.score);
-    setActiveAlerts([]); 
-  }
-}, [selectedPatient]); // <──  THE MAGIC FIX! Adding this tells React to listen for sidebar clicks.
+  useEffect(() => {
+    if (selectedPatient && selectedPatient.labs && selectedPatient.conditions) {
+      const egfr = calculateEGFR({
+        creatinine: selectedPatient.labs.creatinine,
+        age: selectedPatient.age,
+        gender: selectedPatient.gender
+      });
+      
+      const chads = calculateChadsVasc(selectedPatient.age, selectedPatient.gender, selectedPatient.conditions);
+      
+      setCurrentEGFR(egfr);
+      setCurrentChadsVasc(chads.score);
+      setActiveAlerts([]); 
+    }
+  }, [selectedPatient]);
 
-  const setSelectedPatient = (patient: Patient) => {
+  const setSelectedPatient = useCallback((patient: Patient | null) => {
     setSelectedPatientState(patient);
-  };
+  }, []);
 
-  /**
-   * Deterministic Evaluation Pipeline
-   */
   const runSafetyPipeline = useCallback(async (newDrugName: string) => {
     if (!selectedPatient) throw new Error("No active patient tracking selection.");
     
@@ -138,7 +99,7 @@ useEffect(() => {
 
       if (!targetDrug) {
         const unknownAlert: SafetyAlert = {
-          type: 'RENAL',
+          type: 'RENAL', // Fallback type
           severity: 'HIGH',
           title: '⚠️ UNKNOWN COMPOUND DETECTED',
           message: `"${newDrugName}" was not found in the safety database. Guardrails bypassed. Proceed with absolute manual caution.`,
@@ -214,37 +175,32 @@ useEffect(() => {
     }
   }, [selectedPatient, currentEGFR, currentChadsVasc]);
 
-/**
-   * LIVE AI ORCHESTRATION ENGINE (Safe Browser-Compliant Channel)
-   */
   const callLiveAI = useCallback(async (
     drug: string, 
     question: string, 
     constraints: string, 
     mode: 'GENERIC' | 'SHIELDED'
   ): Promise<string> => {
-    const apiKey = import.meta.env.VITE_LLM_API_KEY || llmApiKey; // Added fallback to existing llmApiKey var just in case
+    const apiKey = typeof import.meta.env !== 'undefined' ? import.meta.env.VITE_LLM_API_KEY : llmApiKey;
 
-    // Compile the context message
     const systemPrompt = mode === 'SHIELDED' 
       ? `${constraints}\n\nYou are a clinical safety intercept layer. If a safety conflict is provided above, you MUST explicitly state that the prescription is BLOCKED and outline the safety reason clearly.`
       : "You are a helpful medical assistant chatbot assistant thread. Answer the question directly.";
 
     try {
-      // 💡 Pointing to Groq's official OpenAI-compatible endpoint route
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}` // Reads your gsk_ key from env
+          "Authorization": `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile", // ⚡ A fast, free reasoning model
+          model: "llama-3.3-70b-versatile",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: `Patient Context Check: Regarding prescribing ${drug}. Doctor asks: ${question}` }
           ],
-          temperature: mode === 'SHIELDED' ? 0.1 : 0.7 // Low temp enforces strict safety rules
+          temperature: mode === 'SHIELDED' ? 0.1 : 0.7
         })
       });
 
@@ -279,94 +235,3 @@ export const useDrugSafety = () => {
   if (!context) throw new Error("useDrugSafety hook executed outside an active DrugSafetyProvider root node.");
   return context;
 };
-
-export function useDrugSafety() {
-  const context = useContext(DrugSafetyContext);
-  if (!context) {
-    throw new Error('useDrugSafety must be used within DrugSafetyProvider');
-  }
-  return context;
-}
-
-interface DrugSafetyProviderProps {
-  children: ReactNode;
-  mockPatients: Patient[];
-}
-
-export function DrugSafetyProvider({ children, mockPatients }: DrugSafetyProviderProps) {
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(mockPatients[0] || null);
-  const [activeAlerts, setActiveAlerts] = useState<Alert[]>([]);
-  const [isProcessingCheck, setIsProcessingCheck] = useState(false);
-  const [currentEGFR, setCurrentEGFR] = useState(0);
-  const [currentChadsVasc, setCurrentChadsVasc] = useState(0);
-
-  // CKD-EPI 2021 Equation for eGFR calculation
-  const calculateEGFR = (patient: Patient) => {
-    const creatinine = patient.creatinine;
-    const age = patient.age;
-    const isFemale = patient.gender.toLowerCase() === 'female';
-
-    const kappa = isFemale ? 0.7 : 0.9;
-    const alpha = isFemale ? -0.241 : -0.302;
-    const femaleCoeff = isFemale ? 1.012 : 1;
-
-    const ratio = creatinine / kappa;
-    const eGFR = 142 * Math.pow(ratio, alpha) * Math.pow(0.9938, age) * femaleCoeff;
-
-    return Math.round(eGFR * 10) / 10;
-  };
-
-  // Calculate CHA2DS2-VASc Score
-  const calculateChadsVasc = (patient: Patient) => {
-    let score = 0;
-    score += patient.age >= 75 ? 2 : patient.age >= 65 ? 1 : 0;
-    return score;
-  };
-
-  const runSafetyPipeline = async (drug: string) => {
-    if (!selectedPatient) return { systemConstraintText: 'No patient selected' };
-
-    setIsProcessingCheck(true);
-    const eGFR = calculateEGFR(selectedPatient);
-    const chadsVasc = calculateChadsVasc(selectedPatient);
-    setCurrentEGFR(eGFR);
-    setCurrentChadsVasc(chadsVasc);
-
-    // Simulate deterministic checks
-    const alerts: Alert[] = [];
-    const constraints = `Patient: ${selectedPatient.name}\neGFR: ${eGFR} mL/min/1.73m²\nDrug: ${drug}\nAlerts: ${alerts.length} active`;
-
-    setActiveAlerts(alerts);
-    setIsProcessingCheck(false);
-
-    return { systemConstraintText: constraints };
-  };
-
-  const callLiveAI = async (drug: string, question: string, constraints: string, mode: string): Promise<string> => {
-    // Simulate AI response
-    if (mode === 'GENERIC') {
-      return `Generic AI Response: ${drug} may be appropriate for this indication. Consult clinical guidelines.`;
-    } else {
-      return `Safety-Enhanced Response: After applying deterministic guardrails, ${drug} has been validated against this patient's profile. eGFR: ${currentEGFR} mL/min/1.73m².`;
-    }
-  };
-
-  return (
-    <DrugSafetyContext.Provider
-      value={{
-        patients: mockPatients,
-        selectedPatient,
-        setSelectedPatient,
-        activeAlerts,
-        isProcessingCheck,
-        currentEGFR,
-        currentChadsVasc,
-        runSafetyPipeline,
-        callLiveAI,
-      }}
-    >
-      {children}
-    </DrugSafetyContext.Provider>
-  );
-}
-

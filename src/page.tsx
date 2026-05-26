@@ -259,7 +259,7 @@ function DashboardContent() {
                       <div key={idx} style={{ padding: '16px', borderRadius: '10px', backgroundColor: alert.severity === 'CRITICAL' ? '#fef2f2' : '#fffbeb', borderLeft: `6px solid ${alert.severity === 'CRITICAL' ? '#dc2626' : '#f59e0b'}` }}>
                         <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 'bold', color: '#0f172a' }}>{alert.title}</h4>
                         <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>{alert.message}</p>
-                        <small style={{ color: '#64748b', display: 'block', fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.02)', padding: '6px 10px', borderRadius: '4px' }}><strong>Strategy Protocol:</strong> {alert.recommendation}</small>
+                        <small style={{ color: '#64748b', display: 'block', fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.02)', padding: '6px 10px', borderRadius: '4px' }}><strong>Strategy Protocol:</strong> {alert.overrideStrategy}</small>
                       </div>
                     ))}
                   </div>
